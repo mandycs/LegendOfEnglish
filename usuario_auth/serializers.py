@@ -1,19 +1,29 @@
-# usuario_auth/serializers.py
-
 from rest_framework import serializers
-from .models import CustomUser
+from django.contrib.auth.models import User
 
-class CustomUserSerializer(serializers.ModelSerializer):
+class UserRegisterSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     class Meta:
-        model = CustomUser
-        fields = ('id', 'username', 'email', 'date_of_birth', 'password')
+        model = User
+        fields = ('username', 'email', 'password', 'password2')
         extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        user = CustomUser.objects.create_user(
-            username=validated_data['username'],
-            email=validated_data['email'],
-            date_of_birth=validated_data.get('date_of_birth'),
-            password=validated_data['password']
+        
+    def save(self):
+        password = self.validated_data['password']
+        password2 = self.validated_data['password2']
+        
+        if password != password2:
+            raise serializers.ValidationError({'Error': 'Passwords must match'})
+        
+        if User.objects.filter(email=self.validated_data['email']).exists():
+            raise serializers.ValidationError({'Error': 'Email already exists'})
+        
+        account = User(
+            email=self.validated_data['email'],
+            username=self.validated_data['username']
         )
-        return user
+        account.set_password(password)
+        account.save()
+        
+        return account
+        
