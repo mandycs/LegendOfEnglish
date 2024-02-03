@@ -74,10 +74,20 @@ WSGI_APPLICATION = 'EnglishTeacher.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'djongo',
+        'NAME': os.environ.get('DB_NAME'),  # Default a 'englishTeacher' si no está definido
+        'ENFORCE_SCHEMA': False,
+        'CLIENT': {
+            'host': os.environ.get('DB_HOST'),
+            'port': int(os.environ.get('DB_PORT')),  
+            'username': os.environ.get('DB_USER'),
+            'password': os.environ.get('DB_PASS'),
+            'authSource': os.environ.get('DB_AUTH_SOURCE'),
+            'authMechanism': 'SCRAM-SHA-1'
+        }
     }
 }
+
 
 
 # Password validation
